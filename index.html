@@ -89,7 +89,7 @@
   <div class="ribbon">🏵️ Campanha Oficial — Maio Laranja</div>
   <h1>Proteja Crianças e<br>Adolescentes</h1>
   <p>Maio Laranja é o mês de combate ao abuso e exploração sexual infantil. Informe-se, previna e denuncie.</p>
-  <button class="hero-btn" onclick="document.getElementById('gate').scrollIntoView({behavior:'smooth'})">Acessar Informações ↓</button>
+  <button class="hero-btn" onclick="irParaConteudo()">Acessar Informações ↓</button>
 </div>
 
 <!-- GATE -->
@@ -97,8 +97,8 @@
   <h2>🏵️ Acesso Personalizado</h2>
   <p>Insira seu nome e idade para receber conteúdo adequado para você.</p>
   <div class="form-row">
-    <input id="inp-nome" type="text" placeholder="Seu nome" maxlength="40"/>
-    <input id="inp-idade" type="number" placeholder="Sua idade" min="1" max="120"/>
+    <input id="inp-nome" type="text" placeholder="Seu nome" maxlength="40" aria-label="Seu nome" autocomplete="given-name"/>
+    <input id="inp-idade" type="number" placeholder="Sua idade" min="1" max="120" step="1" inputmode="numeric" aria-label="Sua idade"/>
   </div>
   <button class="btn-enter" onclick="entrar()">Acessar →</button>
   <p class="err" id="err-msg">Por favor, preencha nome e idade corretamente.</p>
@@ -136,7 +136,7 @@
         <div class="card-body">
           <h3>Maio Laranja 2025: "Proteger é Responsabilidade de Todos"</h3>
           <p>O tema nacional deste ano reforça que a proteção de crianças e adolescentes é dever de toda a sociedade, não apenas de familiares.</p>
-          <div class="card-meta">Maio 2025 • MMFDH</div>
+          <div class="card-meta">Maio 2025 • MDHC</div>
         </div>
       </div>
       <div class="card">
@@ -191,25 +191,25 @@
     <div class="contacts-grid">
       <div class="contact-card">
         <span class="c-icon">📞</span>
-        <span class="c-num">100</span>
+        <a class="c-num" href="tel:100">100</a>
         <span class="c-name">Disque 100</span>
         <span class="c-desc">Direitos Humanos — Funciona 24h, gratuito, anônimo. Para denúncias de violação contra crianças e adolescentes.</span>
       </div>
       <div class="contact-card">
         <span class="c-icon">🚨</span>
-        <span class="c-num">190</span>
+        <a class="c-num" href="tel:190">190</a>
         <span class="c-name">Polícia Militar</span>
         <span class="c-desc">Para emergências e flagrantes. Atende 24 horas, todos os dias da semana.</span>
       </div>
       <div class="contact-card">
         <span class="c-icon">👮</span>
-        <span class="c-num">197</span>
+        <a class="c-num" href="tel:197">197</a>
         <span class="c-name">Polícia Civil</span>
         <span class="c-desc">Para registrar boletim de ocorrência. Procure a Delegacia de Proteção à Criança e ao Adolescente (DPCA).</span>
       </div>
       <div class="contact-card">
         <span class="c-icon">💛</span>
-        <span class="c-num">188</span>
+        <a class="c-num" href="tel:188">188</a>
         <span class="c-name">CVV — Apoio Emocional</span>
         <span class="c-desc">Centro de Valorização da Vida. Apoio emocional 24h para quem está em sofrimento ou crise.</span>
       </div>
@@ -220,7 +220,7 @@
       </div>
       <div class="contact-card">
         <span class="c-icon">💻</span>
-        <span class="c-num" style="font-size:1rem;margin-top:6px">safernet.org.br</span>
+        <a class="c-num" style="font-size:1rem;margin-top:6px" href="https://new.safernet.org.br/denuncie" target="_blank" rel="noopener">safernet.org.br</a>
         <span class="c-name">SaferNet Brasil</span>
         <span class="c-desc">Denúncias de crimes cibernéticos contra crianças, incluindo material de abuso e grooming online.</span>
       </div>
@@ -254,6 +254,8 @@ const PALETA = [
 
 let flores = [];
 
+// Posições guardadas de 0 a 1 (proporção da tela): ao redimensionar, as flores
+// só se reposicionam em vez de serem sorteadas de novo.
 function criarFlores() {
   flores = [];
   const W = window.innerWidth, H = window.innerHeight;
@@ -261,8 +263,8 @@ function criarFlores() {
   for (let i = 0; i < qtd; i++) {
     const cor = PALETA[Math.floor(Math.random() * PALETA.length)];
     flores.push({
-      x: Math.random() * W,
-      y: Math.random() * H,
+      x: Math.random(),
+      y: Math.random(),
       r: 18 + Math.random() * 28,
       angulo: Math.random() * Math.PI * 2,
       cor0: cor[0],
@@ -310,13 +312,20 @@ function desenharGerbera(x, y, r, cor0, cor1, ang) {
 }
 
 function desenhar() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  flores.forEach(f => desenharGerbera(f.x, f.y, f.r, f.cor0, f.cor1, f.angulo));
+  const W = window.innerWidth, H = window.innerHeight;
+  const dpr = window.devicePixelRatio || 1; // nitidez em telas de alta densidade
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  flores.forEach(f => desenharGerbera(f.x * W, f.y * H, f.r, f.cor0, f.cor1, f.angulo));
 }
 
-window.addEventListener('resize', () => { criarFlores(); desenhar(); });
+let redesenho;
+window.addEventListener('resize', () => {
+  clearTimeout(redesenho);
+  redesenho = setTimeout(desenhar, 100);
+});
 criarFlores();
 desenhar();
 
@@ -362,9 +371,9 @@ const conteudos = {
 
 function entrar() {
   const nome = document.getElementById('inp-nome').value.trim();
-  const idade = parseInt(document.getElementById('inp-idade').value);
+  const idade = Number(document.getElementById('inp-idade').value);
   const err = document.getElementById('err-msg');
-  if (!nome || !idade || idade < 1 || idade > 120) { err.style.display='block'; return; }
+  if (!nome || !Number.isInteger(idade) || idade < 1 || idade > 120) { err.style.display='block'; return; }
   err.style.display = 'none';
   const grupo = idade <= 11 ? 'crianca' : idade <= 17 ? 'adolescente' : 'adulto';
   const c = conteudos[grupo];
@@ -376,7 +385,13 @@ function entrar() {
   document.getElementById('info-content').innerHTML = html;
   document.getElementById('gate').style.display = 'none';
   document.getElementById('main-content').style.display = 'block';
-  window.scrollTo({top:0,behavior:'smooth'});
+  document.getElementById('main-content').scrollIntoView({behavior:'smooth'});
+}
+
+function irParaConteudo() {
+  const main = document.getElementById('main-content');
+  const alvo = main.style.display === 'block' ? main : document.getElementById('gate');
+  alvo.scrollIntoView({behavior:'smooth'});
 }
 
 function voltarInicio() {
