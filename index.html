@@ -50,6 +50,13 @@
   .tag-adol{background:#fce4ec;color:#880e4f}
   .tag-adulto{background:#e8f5e9;color:#1b5e20}
 
+  /* Cards ilustrados (crianças: só desenho; adolescentes: desenho + frase curta) */
+  .ilus-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-bottom:16px}
+  .ilus-card{background:rgba(255,255,255,0.92);border:1.5px solid #ffe0b2;border-radius:20px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:10px}
+  .ilus-card svg{width:100%;height:auto;max-width:300px;display:block}
+  .ilus-card p{font-size:1rem;font-weight:700;color:#2d1a00;text-align:center;line-height:1.4}
+  .ilus-card p small{display:block;font-weight:600;color:#bf4500;font-size:0.85rem;margin-top:4px}
+
   .cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:20px}
   .card{background:rgba(255,255,255,0.88);backdrop-filter:blur(6px);border-radius:16px;border:1.5px solid #ffe0b2;overflow:hidden;transition:transform .2s;display:flex;flex-direction:column}
   .card:hover{transform:translateY(-3px)}
@@ -329,30 +336,156 @@ window.addEventListener('resize', () => {
 criarFlores();
 desenhar();
 
+/* ── ILUSTRAÇÕES (SVG feito à mão, sem imagens externas) ── */
+const COR = { laranja:'#e85d04', amarelo:'#ffb703', vermelho:'#e63946', verde:'#2e9e5b', escuro:'#2d1a00', cinza:'#9e9e9e', branco:'#fff' };
+
+function svg(alt, corpo) {
+  return `<svg viewBox="0 0 240 180" role="img" aria-label="${alt}" xmlns="http://www.w3.org/2000/svg">${corpo}</svg>`;
+}
+function fundo(cor, x = 0, w = 240) { return `<rect x="${x}" y="0" width="${w}" height="180" rx="16" fill="${cor}"/>`; }
+
+function coracao(cx, cy, t, cor = COR.vermelho) {
+  return `<path d="M${cx} ${cy + t * 0.9} C${cx - t * 1.6} ${cy - t * 0.2} ${cx - t * 0.6} ${cy - t * 1.3} ${cx} ${cy - t * 0.4} C${cx + t * 0.6} ${cy - t * 1.3} ${cx + t * 1.6} ${cy - t * 0.2} ${cx} ${cy + t * 0.9}Z" fill="${cor}"/>`;
+}
+function check(cx, cy, r = 16) {
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${COR.verde}"/><path d="M${cx - r * 0.45} ${cy} l${r * 0.3} ${r * 0.32} l${r * 0.55} -${r * 0.6}" stroke="#fff" stroke-width="${r * 0.22}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+}
+function xis(cx, cy, r = 16) {
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${COR.vermelho}"/><path d="M${cx - r * 0.4} ${cy - r * 0.4} L${cx + r * 0.4} ${cy + r * 0.4} M${cx + r * 0.4} ${cy - r * 0.4} L${cx - r * 0.4} ${cy + r * 0.4}" stroke="#fff" stroke-width="${r * 0.22}" stroke-linecap="round"/>`;
+}
+function proibido(cx, cy, r) {
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${COR.vermelho}" stroke-width="${r * 0.18}"/><line x1="${cx - r * 0.7}" y1="${cy - r * 0.7}" x2="${cx + r * 0.7}" y2="${cy + r * 0.7}" stroke="${COR.vermelho}" stroke-width="${r * 0.18}" stroke-linecap="round"/>`;
+}
+function bracoFim(tipo, lado) {
+  // lado: -1 = esquerda de quem olha, 1 = direita
+  const fins = { baixo: [20, -18], cima: [22, -72], frente: [34, -40], boca: [4, -55] };
+  const [x, y] = fins[tipo] || fins.baixo;
+  return [x * lado, y];
+}
+// Pessoa simples: pés em (x, y), altura controlada por s.
+function pessoa({ x, y, s = 1, pele = '#f1c27d', roupa = COR.laranja, cabelo = '#4a2c0a', bracoE = 'baixo', bracoD = 'baixo', boca = 'sorriso' }) {
+  const braco = (tipo, lado) => {
+    const [bx, by] = bracoFim(tipo, lado);
+    return `<line x1="${13 * lado}" y1="-40" x2="${bx}" y2="${by}" stroke="${roupa}" stroke-width="8" stroke-linecap="round"/><circle cx="${bx}" cy="${by}" r="${tipo === 'frente' || tipo === 'cima' ? 6.5 : 5}" fill="${pele}"/>`;
+  };
+  const bocas = {
+    sorriso: `<path d="M-6 -57 Q0 -50 6 -57" stroke="${COR.escuro}" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+    aberta: `<ellipse cx="0" cy="-55" rx="5" ry="4" fill="${COR.escuro}"/>`,
+    seria: `<line x1="-5" y1="-55" x2="5" y2="-55" stroke="${COR.escuro}" stroke-width="2" stroke-linecap="round"/>`,
+  };
+  return `<g transform="translate(${x} ${y}) scale(${s})">
+    <line x1="-7" y1="-14" x2="-8" y2="0" stroke="#5a3a1a" stroke-width="7" stroke-linecap="round"/>
+    <line x1="7" y1="-14" x2="8" y2="0" stroke="#5a3a1a" stroke-width="7" stroke-linecap="round"/>
+    <rect x="-15" y="-48" width="30" height="38" rx="11" fill="${roupa}"/>
+    ${braco(bracoE, -1)}${braco(bracoD, 1)}
+    <circle cx="0" cy="-64" r="16" fill="${pele}"/>
+    <path d="M-16 -66 A16 16 0 0 1 16 -66 Q8 -74 0 -70 Q-8 -76 -16 -66Z" fill="${cabelo}"/>
+    <circle cx="-5.5" cy="-63" r="2" fill="${COR.escuro}"/><circle cx="5.5" cy="-63" r="2" fill="${COR.escuro}"/>
+    ${bocas[boca] || bocas.sorriso}
+  </g>`;
+}
+function maoAdulta(cx, cy) {
+  return `<g fill="#bdbdbd"><rect x="${cx - 16}" y="${cy - 6}" width="32" height="30" rx="9"/>
+    ${[-12, -4, 4, 12].map((dx, i) => `<rect x="${cx + dx - 3.5}" y="${cy - 26 + (i === 0 || i === 3 ? 6 : 0)}" width="7" height="26" rx="3.5"/>`).join('')}
+    <rect x="${cx + 12}" y="${cy + 2}" width="16" height="7" rx="3.5" transform="rotate(-30 ${cx + 14} ${cy + 5})"/></g>`;
+}
+function celular(x, y, w, h, tela) {
+  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="14" fill="${COR.escuro}"/>
+    <rect x="${x + 7}" y="${y + 14}" width="${w - 14}" height="${h - 26}" rx="6" fill="#fff8f2"/>${tela}`;
+}
+function camera(cx, cy) {
+  return `<rect x="${cx - 16}" y="${cy - 10}" width="32" height="22" rx="5" fill="${COR.cinza}"/><rect x="${cx - 6}" y="${cy - 15}" width="12" height="6" rx="2" fill="${COR.cinza}"/><circle cx="${cx}" cy="${cy + 1}" r="7" fill="#fff"/><circle cx="${cx}" cy="${cy + 1}" r="4" fill="${COR.cinza}"/>`;
+}
+function balao(cx, cy, rx, ry, conteudo, cor = '#fff', borda = COR.laranja, caudaX = cx - rx * 0.4) {
+  return `<path d="M${caudaX} ${cy + ry * 0.8} l-8 16 l18 -12Z" fill="${cor}" stroke="${borda}" stroke-width="2.5"/>
+    <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${cor}" stroke="${borda}" stroke-width="2.5"/>${conteudo}`;
+}
+
+const ILUS = {
+  // Crianças: o desenho fala sozinho (o texto fica só para leitores de tela).
+  corpoMeu: svg('Criança mostra a mão aberta e diz não para uma mão que tenta tocá-la',
+    fundo('#fff3e0') + proibido(68, 86, 46) + maoAdulta(68, 92) +
+    pessoa({ x: 170, y: 168, s: 1.45, roupa: '#f48c06', bracoE: 'frente', boca: 'seria' })),
+  conteAdulto: svg('Criança conta para um adulto de confiança, que escuta com carinho',
+    fundo('#e8f5e9') +
+    pessoa({ x: 70, y: 168, s: 1.15, roupa: '#f72585', cabelo: '#2d1a00', bracoD: 'frente', boca: 'aberta' }) +
+    pessoa({ x: 170, y: 168, s: 1.7, pele: '#c68642', roupa: '#1f6b9c', cabelo: '#1a1a1a', bracoE: 'frente' }) +
+    balao(78, 34, 30, 20, coracao(78, 36, 10)) + check(214, 26, 14)),
+  segredo: svg('Segredo que deixa a criança triste não se guarda; contar é o certo',
+    fundo('#ffebee', 0, 122) + fundo('#e8f5e9', 118, 122) +
+    `<circle cx="60" cy="96" r="34" fill="#f1c27d"/><path d="M26 92 A34 34 0 0 1 94 92 Q78 70 60 76 Q42 68 26 92Z" fill="#4a2c0a"/>
+     <circle cx="48" cy="94" r="3" fill="${COR.escuro}"/><circle cx="72" cy="94" r="3" fill="${COR.escuro}"/>
+     <path d="M48 116 Q60 110 72 116" stroke="${COR.escuro}" stroke-width="2.5" fill="none"/>
+     <rect x="55" y="96" width="10" height="34" rx="5" fill="#e0a96d"/>` + xis(100, 30, 15) +
+    `<circle cx="178" cy="100" r="34" fill="#f1c27d"/><path d="M144 96 A34 34 0 0 1 212 96 Q196 74 178 80 Q160 72 144 96Z" fill="#4a2c0a"/>
+     <circle cx="166" cy="98" r="3" fill="${COR.escuro}"/><circle cx="190" cy="98" r="3" fill="${COR.escuro}"/>
+     <ellipse cx="178" cy="116" rx="9" ry="7" fill="${COR.escuro}"/>` +
+    balao(196, 36, 26, 18, coracao(196, 38, 9), '#fff', COR.verde, 186) + check(222, 150, 13)),
+  internet: svg('No celular, não mande fotos para desconhecidos',
+    fundo('#e3f2fd') +
+    celular(66, 14, 96, 156,
+      `<circle cx="92" cy="46" r="11" fill="${COR.cinza}"/><circle cx="92" cy="42" r="4" fill="#fff"/><path d="M84 52 Q92 44 100 52" fill="#fff"/>
+       ${balao(132, 48, 20, 13, `<text x="132" y="54" font-size="16" font-weight="800" text-anchor="middle" fill="${COR.cinza}">?</text>`, '#eee', COR.cinza, 122)}
+       ${camera(114, 112)}${proibido(114, 112, 30)}`) +
+    `<path d="M200 50 l26 10 v22 q0 24 -26 36 q-26 -12 -26 -36 v-22Z" fill="${COR.verde}"/>
+     <path d="M189 82 l8 8 l15 -16" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`),
+  toqueBom: svg('Toque bom é aquele que deixa feliz, como um “toca aqui” entre amigos',
+    fundo('#fff8e1') +
+    pessoa({ x: 92, y: 168, s: 1.3, roupa: '#06a77d', bracoD: 'cima' }) +
+    pessoa({ x: 150, y: 168, s: 1.3, pele: '#8d5524', roupa: '#c77dff', cabelo: '#1a1a1a', bracoE: 'cima' }) +
+    coracao(48, 40, 11, '#ff6b9d') + coracao(196, 52, 9, '#ff6b9d') + coracao(120, 24, 8, COR.amarelo) + check(212, 150, 14)),
+
+  // Adolescentes: desenho + frase curta.
+  aliciamento: svg('Conversa com perfil desconhecido pedindo segredo, com sinal de alerta',
+    fundo('#fce4ec') +
+    celular(70, 12, 100, 158,
+      `<circle cx="96" cy="44" r="10" fill="${COR.cinza}"/>
+       <rect x="86" y="62" width="72" height="16" rx="8" fill="#e0e0e0"/><rect x="86" y="84" width="50" height="16" rx="8" fill="#e0e0e0"/>
+       <rect x="86" y="106" width="72" height="16" rx="8" fill="#e0e0e0"/>
+       <text x="94" y="74" font-size="10" fill="#555">só entre nós...</text><text x="94" y="118" font-size="10" fill="#555">manda foto?</text>`) +
+    `<path d="M206 40 L232 88 L180 88Z" fill="${COR.amarelo}" stroke="${COR.escuro}" stroke-width="3" stroke-linejoin="round"/>
+     <text x="206" y="82" font-size="30" font-weight="900" text-anchor="middle" fill="${COR.escuro}">!</text>`),
+  fotoIntima: svg('Foto pessoal protegida por cadeado, envio bloqueado',
+    fundo('#ede7f6') +
+    celular(40, 12, 100, 158,
+      `<rect x="56" y="40" width="68" height="56" rx="6" fill="#c77dff"/><circle cx="76" cy="58" r="8" fill="#fff"/><path d="M56 96 L84 70 L104 86 L124 66 V96Z" fill="#7b2cbf"/>
+       <rect x="78" y="104" width="24" height="20" rx="4" fill="${COR.escuro}"/><path d="M83 104 v-6 a7 7 0 0 1 14 0 v6" stroke="${COR.escuro}" stroke-width="4" fill="none"/>`) +
+    `<path d="M156 90 h40 l-10 -12 M196 90 l-10 12" stroke="${COR.cinza}" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>` + xis(206, 46, 18)),
+  naoENao: svg('Adolescente diz não com a mão aberta; o não precisa ser respeitado',
+    fundo('#fff3e0') +
+    pessoa({ x: 86, y: 168, s: 1.55, pele: '#c68642', roupa: '#e85d04', cabelo: '#1a1a1a', bracoD: 'frente', boca: 'seria' }) +
+    balao(176, 52, 40, 28, `<text x="176" y="62" font-size="28" font-weight="900" text-anchor="middle" fill="${COR.vermelho}">NÃO</text>`, '#fff', COR.vermelho, 160)),
+  ajuda: svg('Celular ligando para o Disque 100, com coração de apoio',
+    fundo('#e8f5e9') +
+    celular(70, 12, 100, 158,
+      `<text x="120" y="92" font-size="44" font-weight="900" text-anchor="middle" fill="${COR.laranja}">100</text>
+       <circle cx="120" cy="128" r="16" fill="${COR.verde}"/><path d="M112 122 q2 10 14 14 l4 -4 l-5 -5 l-3 2 q-5 -2 -7 -7 l2 -3 l-5 -5Z" fill="#fff"/>`) +
+    coracao(204, 60, 16, '#ff6b9d') + coracao(36, 120, 11, COR.amarelo)),
+};
+
 /* ── CONTEÚDO PERSONALIZADO ── */
 const conteudos = {
   crianca: {
     tag: '<span class="tag tag-crianca">Para crianças (até 11 anos)</span>',
-    titulo: 'Seu corpo é seu!',
     greeting: 'Veja o que é importante saber para ficar seguro(a).',
     badge: '🧡 Conteúdo para crianças',
-    items: [
-      {h:'Ninguém pode tocar no seu corpo sem você querer',p:'Você tem o direito de dizer NÃO para qualquer toque que te deixe com medo, vergonha ou desconforto — mesmo que seja alguém da sua família ou que você conheça.'},
-      {h:'Conte para um adulto de confiança',p:'Se alguém te fizer sentir mal ou te pedir segredo sobre um toque, conte imediatamente para a mamãe, o papai, um professor ou outro adulto em quem você confie. Você não vai se meter em problema — você está fazendo a coisa certa!'},
-      {h:'Na internet também vale!',p:'Nunca envie fotos suas para pessoas da internet, nem aceite pedidos de estranhos online. Se alguém te pedir algo que pareça estranho, conte para um adulto.'},
-      {h:'Partes do corpo cobertas pelo biquíni/short são privadas',p:'Apenas médicos, com um pai ou responsável presente, podem vê-las quando necessário para cuidar da sua saúde.'},
+    cards: [
+      { ilus: 'corpoMeu' },
+      { ilus: 'toqueBom' },
+      { ilus: 'segredo' },
+      { ilus: 'conteAdulto' },
+      { ilus: 'internet' },
     ]
   },
   adolescente: {
     tag: '<span class="tag tag-adol">Para adolescentes (12–17 anos)</span>',
-    titulo: 'Conheça seus direitos e proteja-se',
     greeting: 'Informação é proteção. Veja o que você precisa saber.',
     badge: '🧡 Conteúdo para adolescentes',
-    items: [
-      {h:'O que é abuso sexual?',p:'Qualquer ato sexual praticado contra sua vontade ou com menor de 14 anos — mesmo que você "aceite" — é crime. Relações sexuais com menores de 14 anos são estupro de vulnerável, independentemente de consentimento.'},
-      {h:'Reconheça o grooming online',p:'Adultos que tentam aproximação excessiva, pedem fotos íntimas, querem se encontrar em segredo, ou que tentam te afastar de amigos e família estão praticando grooming — uma forma de aliciamento. Bloqueie e denuncie.'},
-      {h:'Sexting tem consequências',p:'Compartilhar imagens íntimas sem consentimento é crime (Lei 13.718/2018). Se alguém ameaçar divulgar suas imagens, procure ajuda imediatamente — isso se chama sextorsão e é crime.'},
-      {h:'Como pedir ajuda',p:'Converse com um adulto de confiança, psicólogo escolar, ou ligue 100 (gratuito e sigiloso). Você não está sozinho(a) e vai encontrar apoio.'},
+    cards: [
+      { ilus: 'naoENao', frase: 'Não é não.', detalhe: 'Com menores de 14 anos é crime, mesmo com "sim".' },
+      { ilus: 'aliciamento', frase: 'Adulto pedindo foto ou segredo?', detalhe: 'É aliciamento (grooming). Bloqueie e denuncie.' },
+      { ilus: 'fotoIntima', frase: 'Foto íntima não se envia.', detalhe: 'Ameaçar vazar é crime (sextorsão). Peça ajuda.' },
+      { ilus: 'ajuda', frase: 'Você não está sozinho(a).', detalhe: 'Disque 100: gratuito, sigiloso e 24h.' },
     ]
   },
   adulto: {
@@ -380,8 +513,16 @@ function entrar() {
   document.getElementById('greet-title').textContent = `Olá, ${nome}! 👋`;
   document.getElementById('greet-msg').textContent = c.greeting;
   document.getElementById('greet-badge').textContent = c.badge;
-  let html = c.tag + `<div class="info-box"><h3>${c.titulo}</h3></div>`;
-  c.items.forEach(it => { html += `<div class="info-box"><h3>${it.h}</h3><p>${it.p}</p></div>`; });
+  let html = c.tag;
+  if (c.cards) {
+    // Crianças: só o desenho. Adolescentes: desenho + frase curta.
+    html += '<div class="ilus-grid">' + c.cards.map(k =>
+      `<div class="ilus-card">${ILUS[k.ilus]}${k.frase ? `<p>${k.frase}<small>${k.detalhe}</small></p>` : ''}</div>`
+    ).join('') + '</div>';
+  } else {
+    html += `<div class="info-box"><h3>${c.titulo}</h3></div>`;
+    c.items.forEach(it => { html += `<div class="info-box"><h3>${it.h}</h3><p>${it.p}</p></div>`; });
+  }
   document.getElementById('info-content').innerHTML = html;
   document.getElementById('gate').style.display = 'none';
   document.getElementById('main-content').style.display = 'block';
